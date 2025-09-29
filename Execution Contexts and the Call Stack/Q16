@@ -1,0 +1,11 @@
+function outerFunction() {
+  let outerVar = "I am from outer scope";
+  
+  function innerFunction() {
+    console.log(outerVar);
+  }
+
+  innerFunction();
+}
+
+outerFunction();
