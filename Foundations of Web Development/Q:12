@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Question 12</title>
+</head>
+<body>
+    <h1>** Festivals **</h1>
+
+    <h2>Sankranti (Month: Jan)</h2>
+    <p>Makar Sankranti celebrates the harvest season and the sun's transition into Capricorn.People fly kites, prepare traditional sweets like tilgul, and take holy dips in rivers.It marks a time of gratitude for nature's bounty and the start of longer days.</p>
+
+    <h3>Dussehra (Month: Oct)</h3>
+    <p>Dussehra marks the triumph of Lord Rama over Ravana, symbolizing the victory of good over evil.Effigies of Ravana are burnt across India to celebrate this victory.It also concludes the nine-day Navratri festival honoring Goddess Durga.</p>
+
+    <h4>Diwali (Month: Oct/Nov)</h4>
+    <p>Diwali, the festival of lights, celebrates the victory of good over evil and light over darkness.Homes are decorated with diyas, rangolis, and lights, symbolizing joy and prosperity.People exchange sweets, burst crackers, and worship Goddess Lakshmi for blessings.</p>
+</body>
+</html>
