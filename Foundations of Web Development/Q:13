@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Q:13 Biography</title>
+</head>
+<body bgcolor="lightblue">
+    <h1 align="center">Introduction</h1>
+    <p>My name is Kambala Guru Dheeraj Reddy.I am student of masai school, registered in part-time software development and currently at mid of unit-4.</p>
+    <hr style="height:5px;color:rgb(129, 28, 28);background-color:rgb(99, 22, 22)">
+
+    <h2 align="center">About me!</h2>
+    <p>I am an enthusiastic and upcoming full stack developer where consistency,dedication and creativity made me to be in this position, and as a masai school student i am very proud that i am going to become a full stack developer with the in-demand skills what an current it industry expects.</p>
+    <hr style="height:5px;color:rgb(129, 28, 28);background-color:rgb(99, 22, 22)">
+
+    <h2 align="center">Hobbies</h2>
+    <ul>
+        <li>Coding</li>
+        <li>Listening songs</li>
+        <li>Watching films</li>
+        <li>Cricket</li>
+    </ul>
+    <hr style="height:5px;color:rgb(129, 28, 28);background-color:rgb(99, 22, 22)">
+
+    <h2 align="center">Contact Information</h2>
+    <center>
+    <form>
+        <fieldset style="border-color: blueviolet;width: 50%;">
+            <legend><h3>Contact Information</h3></legend>
+            <label><b>Name</b></label>
+            <input type="text" autofocus placeholder="Name"><br><br>
+            <label><b>Email</b></label>
+            <input type="email" placeholder="E-mail"><br><br>
+            <button type="submit">Submit</button>
+        </fieldset>
+    </form>
+    </center>
+    <hr style="height:5px;color:rgb(129, 28, 28);background-color:rgb(99, 22, 22)">
+    <center><h3>&copy by Dheeraj Reddy</h3></center>
+</body>
+</html>
