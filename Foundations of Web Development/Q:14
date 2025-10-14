@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Q:14 My Debug Page</title>
+</head>
+<body>
+    <h1>Welcome to my Page</h1>
+    <p>This is a paragraph that introduces the page.</p>
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTksTmEUKZqROBGhK4XKIsUU2Rd2UzeIBCKdA&s" alt="Masai_logo" style="border-radius: 47%;"><br><br>
+    <form action="https://www.masaischool.com/">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password"><br><br>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
