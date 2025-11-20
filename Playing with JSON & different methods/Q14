@@ -1,0 +1,15 @@
+let user = {
+  name: "John Doe",
+  age: 25,
+  email: "john@example.com",
+  isAdmin: false
+};
+
+let json=JSON.stringify(user);
+let jsobj=JSON.parse(json);
+
+let {name,age,email,isAdmin}=user;
+console.log("Name:",name);
+console.log("Age:",age);
+console.log("Email:",email);
+console.log("Admin:",isAdmin);
