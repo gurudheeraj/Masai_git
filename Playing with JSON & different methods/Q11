@@ -1,0 +1,5 @@
+let extractAndReverse=(arr)=>{
+  let extracted=arr.slice(3,5);
+  return ("Reversed extracted array is: ",extracted.reverse());
+}
+console.log(extractAndReverse([15, 30, 45, 60, 75, 90]));
