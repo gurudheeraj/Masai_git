@@ -1,0 +1,7 @@
+let student = {
+  name: "Dheeraj",
+  age: 21,
+  course: "Computer Science"
+};
+let jsonConvert=JSON.stringify(student);
+console.log(jsonConvert)
