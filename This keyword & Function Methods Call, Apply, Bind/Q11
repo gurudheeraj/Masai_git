@@ -1,0 +1,11 @@
+let user={
+    username:"dheeraj",
+    showUsername:function(){
+        console.log(this.username)
+    }
+}
+function displayUser(){
+    console.log(this.username)
+}
+user.showUsername();
+displayUser()
