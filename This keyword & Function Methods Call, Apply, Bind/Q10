@@ -1,0 +1,8 @@
+let car={
+    brand:"TATA",
+    getBrand:function(){
+        return this.brand;
+    }
+}
+let bound=car.getBrand.bind(car);
+console.log(bound());
