@@ -1,0 +1,28 @@
+console.log("Begin"); 
+
+setTimeout(() =>{
+    console.log("Timeout Task"); 
+}, 0); 
+
+Promise.resolve()
+.then(() =>{
+    console.log("Promise Task"); 
+}); 
+
+console.log("End");
+
+----------------------------------------------------------
+Explanation: 
+*By default JavaScript is single thread nature, due to this behaviour all synchronous tasks executes immediately. This is the reason why Begin and End consoles one by one.
+*When comes to asynchronous tasks, during the execution of synchronous tasks even the async tasks encounters first, they are kept in web API block until all sync tasks executes.
+-Once all synchronous tasks are executed, then the tasks which are hold in web API are then moved to task queue or call back queue based on their delay.
+-Before reaching to task queue there are two components in it called 1. Micro task queue, 2. Macro Task queue.
+-Promises would enter into the micro task queue & setTimeouts,setintervals,etc would enter into macro task queue.
+-Highest priority would given for micro task queue and lowest priority given to macro task queue.
+-After all set, event loop runs on one condition that "call stack need to be empty & task queue or call back queue not be empty". This loop continues until task queue becomes empty.
+-When event loop runs, simultaneously what ever present in task queue (1st micro queue, 2nd macro queue) enters into call stack and console it.
+*After this whole mechanism we get the output as:
+" Begin
+  End
+  Promise Task
+  Timeout Task "
