@@ -1,0 +1,9 @@
+let cou=0;
+let id=setInterval(()=>{
+    cou++;
+    console.log("Loading...")
+    if(cou==5){
+        clearInterval(id);
+        console.log("Loaded successfully!");
+    }
+},1000)
