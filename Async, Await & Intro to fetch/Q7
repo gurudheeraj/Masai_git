@@ -1,0 +1,8 @@
+let Fetch=fetch("https://jsonplaceholder.typicode.com/users");
+Fetch
+.then((res)=>res.json())
+.then((res)=>{
+    res.forEach(ele => {
+        console.log(ele.name)
+    });
+})
