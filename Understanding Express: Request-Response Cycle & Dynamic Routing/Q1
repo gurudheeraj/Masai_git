@@ -1,0 +1,51 @@
+*Initialize the Node.js project
+mkdir express-basic-server
+cd express-basic-server
+npm init -y
+
+npm install express
+
+express-basic-server/
+├── node_modules/
+├── package.json
+├── package-lock.json
+└── server.js
+
+#Server.js
+const express = require("express");
+
+const app = express();
+const PORT = 3000;
+
+// Home Route
+app.get("/home", (req, res) => {
+  res.status(200).send("<h1>Welcome to Home Page</h1>");
+});
+
+// About Us Route
+app.get("/aboutus", (req, res) => {
+  res.status(200).json({ message: "Welcome to About Us" });
+});
+
+// Contact Us Route
+app.get("/contactus", (req, res) => {
+  res.status(200).json({
+    email: "contact@example.com",
+    phone: "+91-9876543210",
+    address: "Bangalore, India",
+  });
+});
+
+// Handle Undefined Routes (404)
+app.use((req, res) => {
+  res.status(404).send("404 Not Found");
+});
+
+// Start Server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+#Start the Sever
+node server.js
+Server is running on http://localhost:3000
