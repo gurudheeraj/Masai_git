@@ -1,0 +1,255 @@
+** Project Structure
+todo-app/
+│
+├── models/
+│   └── todoModel.js
+│
+├── controllers/
+│   └── todoController.js
+│
+├── routes/
+│   └── todoRoutes.js
+│
+├── db.json
+├── app.js
+├── package.json
+
+
+1. Initialize Project
+mkdir todo-app
+cd todo-app
+npm init -y
+npm install express
+
+2. Create db.json
+{
+  "todos": []
+}
+
+3. todoModel.js
+const fs = require("fs");
+const path = require("path");
+
+const dbPath = path.join(__dirname, "../db.json");
+
+// Read DB
+const readData = () => {
+  const data = fs.readFileSync(dbPath, "utf-8");
+  return JSON.parse(data);
+};
+
+// Write DB
+const writeData = (data) => {
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+};
+
+module.exports = { readData, writeData };
+
+
+4. todoController.js
+const { readData, writeData } = require("../models/todoModel");
+
+/*
+  GET /todos
+  Returns all todos
+*/
+const getTodos = (req, res) => {
+  try {
+    const db = readData();
+    res.status(200).json(db.todos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong while fetching todos" });
+  }
+};
+
+/*
+  POST /todos
+  Creates a new todo
+*/
+const createTodo = (req, res) => {
+  try {
+    const { title, completed } = req.body;
+
+    // basic validation
+    if (!title || title.trim() === "") {
+      return res.status(400).json({ message: "Please provide a valid title" });
+    }
+
+    const db = readData();
+
+    const newTodo = {
+      id: Date.now(), // simple unique id
+      title: title.trim(),
+      completed: completed ?? false,
+    };
+
+    db.todos.push(newTodo);
+    writeData(db);
+
+    res.status(201).json({
+      message: "Todo created successfully",
+      todo: newTodo,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Unable to create todo" });
+  }
+};
+
+/*
+  PUT /todos/:id
+  Updates a todo by id
+*/
+const updateTodo = (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const db = readData();
+
+    const todo = db.todos.find(t => t.id === id);
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    // update only provided fields
+    if (req.body.title !== undefined) {
+      todo.title = req.body.title;
+    }
+
+    if (req.body.completed !== undefined) {
+      todo.completed = req.body.completed;
+    }
+
+    writeData(db);
+
+    res.status(200).json({
+      message: "Todo updated successfully",
+      todo,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Unable to update todo" });
+  }
+};
+
+/*
+  DELETE /todos/:id
+  Deletes a todo by id
+*/
+const deleteTodo = (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const db = readData();
+
+    const index = db.todos.findIndex(t => t.id === id);
+
+    if (index === -1) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    const removedTodo = db.todos.splice(index, 1);
+
+    writeData(db);
+
+    res.status(200).json({
+      message: "Todo deleted successfully",
+      deleted: removedTodo[0],
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Unable to delete todo" });
+  }
+};
+
+/*
+  GET /todos/search?q=keyword
+  Case-insensitive partial search
+*/
+const searchTodos = (req, res) => {
+  try {
+    const query = req.query.q;
+
+    if (!query) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    const db = readData();
+
+    const filteredTodos = db.todos.filter(todo =>
+      todo.title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    res.status(200).json(filteredTodos);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Unable to search todos" });
+  }
+};
+
+module.exports = {
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  searchTodos,
+};
+
+5. todoRoutes.js
+const express = require("express");
+const router = express.Router();
+
+// importing controller functions
+const todoController = require("../controllers/todoController");
+
+/*
+  Routes related to todos
+*/
+
+// get all todos
+router.get("/", todoController.getTodos);
+
+// search todos (keep this above /:id route)
+router.get("/search", todoController.searchTodos);
+
+// create new todo
+router.post("/", todoController.createTodo);
+
+// update todo using id (params)
+router.put("/:id", todoController.updateTodo);
+
+// delete todo using id (params)
+router.delete("/:id", todoController.deleteTodo);
+
+module.exports = router;
+
+6. app.js
+const express = require("express");
+const app = express();
+
+// importing routes
+const todoRoutes = require("./routes/todoRoutes");
+
+const PORT = 3000;
+
+// middleware to parse JSON body
+app.use(express.json());
+
+// main route for todos
+app.use("/todos", todoRoutes);
+
+// if user visits any undefined route
+app.use((req, res) => {
+  res.status(404).json({
+    message: "404 Not Found - Route does not exist"
+  });
+});
+
+// starting the server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
