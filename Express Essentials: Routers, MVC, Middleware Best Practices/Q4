@@ -1,0 +1,245 @@
+** Project Structure
+task-tracker/
+│
+├── models/
+│   └── taskModel.js
+│
+├── controllers/
+│   └── taskController.js
+│
+├── routes/
+│   └── taskRoutes.js
+│
+├── tasks.json
+├── app.js
+├── package.json
+
+1. Initialize Project
+npm init -y
+npm install express
+
+
+2. tasks.json
+{
+  "tasks": []
+}
+
+
+3. taskModel.js
+const fs = require("fs");
+const path = require("path");
+
+const filePath = path.join(__dirname, "../tasks.json");
+
+const readTasks = () => {
+  const data = fs.readFileSync(filePath, "utf-8");
+  return JSON.parse(data);
+};
+
+const writeTasks = (data) => {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+};
+
+module.exports = { readTasks, writeTasks };
+
+4. taskController.js
+const { readTasks, writeTasks } = require("../models/taskModel");
+
+/*
+  GET /tasks
+  Returns all tasks
+*/
+const getAllTasks = (req, res) => {
+  try {
+    const data = readTasks();
+    res.status(200).json(data.tasks);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching tasks" });
+  }
+};
+
+/*
+  GET /tasks/filter?tag=frontend
+  Filters tasks by tag
+*/
+const filterTasks = (req, res) => {
+  try {
+    const tag = req.query.tag;
+
+    if (!tag) {
+      return res.status(400).json({ message: "Tag query is required" });
+    }
+
+    const data = readTasks();
+
+    const filtered = data.tasks.filter(task =>
+      task.tag.toLowerCase() === tag.toLowerCase()
+    );
+
+    res.status(200).json(filtered);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error filtering tasks" });
+  }
+};
+
+/*
+  POST /tasks
+  Adds new task
+*/
+const createTask = (req, res) => {
+  try {
+    const { title, description, tag, priority, status } = req.body;
+
+    if (!title || !tag) {
+      return res.status(400).json({ message: "Title and tag are required" });
+    }
+
+    const data = readTasks();
+
+    const newTask = {
+      id: Date.now(),
+      title,
+      description: description || "",
+      tag,
+      priority: priority || "medium",
+      status: status || "pending"
+    };
+
+    data.tasks.push(newTask);
+    writeTasks(data);
+
+    res.status(201).json({
+      message: "Task created successfully",
+      task: newTask
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error creating task" });
+  }
+};
+
+/*
+  PUT /tasks/:id
+  Updates task
+*/
+const updateTask = (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const data = readTasks();
+
+    const task = data.tasks.find(t => t.id === id);
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // update only given fields
+    const { title, description, tag, priority, status } = req.body;
+
+    if (title !== undefined) task.title = title;
+    if (description !== undefined) task.description = description;
+    if (tag !== undefined) task.tag = tag;
+    if (priority !== undefined) task.priority = priority;
+    if (status !== undefined) task.status = status;
+
+    writeTasks(data);
+
+    res.status(200).json({
+      message: "Task updated successfully",
+      task
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error updating task" });
+  }
+};
+
+/*
+  DELETE /tasks/:id
+*/
+const deleteTask = (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const data = readTasks();
+
+    const index = data.tasks.findIndex(t => t.id === id);
+
+    if (index === -1) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const removed = data.tasks.splice(index, 1);
+    writeTasks(data);
+
+    res.status(200).json({
+      message: "Task deleted successfully",
+      deleted: removed[0]
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error deleting task" });
+  }
+};
+
+module.exports = {
+  getAllTasks,
+  filterTasks,
+  createTask,
+  updateTask,
+  deleteTask
+};
+
+
+4. taskRoutes.js
+const express = require("express");
+const router = express.Router();
+
+const taskController = require("../controllers/taskController");
+
+// get all tasks
+router.get("/", taskController.getAllTasks);
+
+// filter by tag
+router.get("/filter", taskController.filterTasks);
+
+// create task
+router.post("/", taskController.createTask);
+
+// update task
+router.put("/:id", taskController.updateTask);
+
+// delete task
+router.delete("/:id", taskController.deleteTask);
+
+module.exports = router;
+
+
+5. app.js
+const express = require("express");
+const app = express();
+
+const taskRoutes = require("./routes/taskRoutes");
+
+const PORT = 3000;
+
+app.use(express.json());
+
+// mount routes
+app.use("/tasks", taskRoutes);
+
+// handle undefined routes
+app.use((req, res) => {
+  res.status(404).json({
+    message: "404 Not Found"
+  });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
