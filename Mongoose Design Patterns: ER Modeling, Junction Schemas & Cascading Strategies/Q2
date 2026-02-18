@@ -1,0 +1,341 @@
+** Project Structure
+hospital-app/
+│
+├── models/
+│   ├── doctor.model.js
+│   ├── patient.model.js
+│   └── consultation.model.js
+│
+├── controllers/
+│   ├── doctor.controller.js
+│   ├── patient.controller.js
+│   └── consultation.controller.js
+│
+├── routes/
+│   ├── doctor.routes.js
+│   ├── patient.routes.js
+│   └── consultation.routes.js
+│
+├── config/
+│   └── db.js
+│
+├── .env
+├── index.js
+└── package.json
+
+
+1. .env
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/hospitalDB
+
+
+2. db.js
+const mongoose = require("mongoose");
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+};
+
+module.exports = connectDB;
+
+
+3. doctor.model.js
+const mongoose = require("mongoose");
+
+const doctorSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    specialization: { type: String, required: true },
+    isActive: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Doctor", doctorSchema);
+
+
+4. patient.model.js
+const mongoose = require("mongoose");
+
+const patientSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    age: { type: Number, required: true },
+    gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
+    isActive: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Patient", patientSchema);
+
+
+5. consultation.model.js
+const mongoose = require("mongoose");
+
+const consultationSchema = new mongoose.Schema(
+  {
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true
+    },
+    patientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      required: true
+    },
+    consultedAt: { type: Date, default: Date.now },
+    notes: String,
+    isActive: { type: Boolean, default: true }
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Consultation", consultationSchema);
+
+
+6. doctor.controller.js
+const Doctor = require("../models/doctor.model");
+const Consultation = require("../models/consultation.model");
+
+// POST /doctors
+exports.createDoctor = async (req, res) => {
+  try {
+    const doctor = await Doctor.create(req.body);
+    res.status(201).json(doctor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+// GET /doctors/:id/patients
+exports.getDoctorPatients = async (req, res) => {
+  try {
+    const consultations = await Consultation.find({
+      doctorId: req.params.id,
+      isActive: true
+    })
+      .populate({
+        path: "patientId",
+        select: "name age gender",
+        match: { isActive: true }
+      })
+      .sort({ consultedAt: -1 })
+      .limit(10);
+
+    const patients = consultations
+      .map(c => c.patientId)
+      .filter(Boolean);
+
+    res.json(patients);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /doctors/:id/consultations/count
+exports.getDoctorConsultationCount = async (req, res) => {
+  try {
+    const count = await Consultation.countDocuments({
+      doctorId: req.params.id,
+      isActive: true
+    });
+    res.json({ totalConsultations: count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE /doctors/:id (Soft delete + cascade)
+exports.deleteDoctor = async (req, res) => {
+  try {
+    await Doctor.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Consultation.updateMany(
+      { doctorId: req.params.id },
+      { isActive: false }
+    );
+
+    res.json({ message: "Doctor and related consultations deactivated" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+7. patient.controller.js
+const Patient = require("../models/patient.model");
+const Consultation = require("../models/consultation.model");
+
+// POST /patients
+exports.createPatient = async (req, res) => {
+  try {
+    const patient = await Patient.create(req.body);
+    res.status(201).json(patient);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+// GET /patients/:id/doctors
+exports.getPatientDoctors = async (req, res) => {
+  try {
+    const consultations = await Consultation.find({
+      patientId: req.params.id,
+      isActive: true
+    }).populate({
+      path: "doctorId",
+      select: "name specialization",
+      match: { isActive: true }
+    });
+
+    const doctors = consultations
+      .map(c => c.doctorId)
+      .filter(Boolean);
+
+    res.json(doctors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /patients?gender=Male
+exports.getPatientsByGender = async (req, res) => {
+  try {
+    const patients = await Patient.find({
+      gender: req.query.gender,
+      isActive: true
+    });
+    res.json(patients);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE /patients/:id (Soft delete + cascade)
+exports.deletePatient = async (req, res) => {
+  try {
+    await Patient.findByIdAndUpdate(req.params.id, { isActive: false });
+    await Consultation.updateMany(
+      { patientId: req.params.id },
+      { isActive: false }
+    );
+
+    res.json({ message: "Patient and related consultations deactivated" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+8. consultation.controller.js
+const Consultation = require("../models/consultation.model");
+const Doctor = require("../models/doctor.model");
+const Patient = require("../models/patient.model");
+
+// POST /consultations
+exports.createConsultation = async (req, res) => {
+  try {
+    const { doctorId, patientId, notes } = req.body;
+
+    const doctor = await Doctor.findById(doctorId);
+    const patient = await Patient.findById(patientId);
+
+    if (!doctor || !doctor.isActive)
+      return res.status(400).json({ message: "Doctor inactive or not found" });
+
+    if (!patient || !patient.isActive)
+      return res.status(400).json({ message: "Patient inactive or not found" });
+
+    const consultation = await Consultation.create({
+      doctorId,
+      patientId,
+      notes
+    });
+
+    res.status(201).json(consultation);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /consultations/recent
+exports.getRecentConsultations = async (req, res) => {
+  try {
+    const consultations = await Consultation.find({ isActive: true })
+      .sort({ consultedAt: -1 })
+      .limit(5)
+      .populate("doctorId patientId", "name specialization age");
+
+    res.json(consultations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+9. doctor.routes.js
+const express = require("express");
+const router = express.Router();
+const doctorCtrl = require("../controllers/doctor.controller");
+
+router.post("/", doctorCtrl.createDoctor);
+router.get("/:id/patients", doctorCtrl.getDoctorPatients);
+router.get("/:id/consultations/count", doctorCtrl.getDoctorConsultationCount);
+router.delete("/:id", doctorCtrl.deleteDoctor);
+
+module.exports = router;
+
+
+10. patient.routes.js
+const express = require("express");
+const router = express.Router();
+const patientCtrl = require("../controllers/patient.controller");
+
+router.post("/", patientCtrl.createPatient);
+router.get("/", patientCtrl.getPatientsByGender);
+router.get("/:id/doctors", patientCtrl.getPatientDoctors);
+router.delete("/:id", patientCtrl.deletePatient);
+
+module.exports = router;
+
+
+11. consultation.routes.js
+const express = require("express");
+const router = express.Router();
+const consultationCtrl = require("../controllers/consultation.controller");
+
+router.post("/", consultationCtrl.createConsultation);
+router.get("/recent", consultationCtrl.getRecentConsultations);
+
+module.exports = router;
+
+
+12. index.js
+require("dotenv").config();
+const express = require("express");
+const connectDB = require("./config/db");
+
+const doctorRoutes = require("./routes/doctor.routes");
+const patientRoutes = require("./routes/patient.routes");
+const consultationRoutes = require("./routes/consultation.routes");
+
+const app = express();
+connectDB();
+
+app.use(express.json());
+
+app.use("/doctors", doctorRoutes);
+app.use("/patients", patientRoutes);
+app.use("/consultations", consultationRoutes);
+
+app.listen(process.env.PORT, () =>
+  console.log(`Server running on port ${process.env.PORT}`)
+);
+
