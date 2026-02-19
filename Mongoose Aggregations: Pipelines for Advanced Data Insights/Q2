@@ -1,0 +1,65 @@
+1. Find the Total Amount Spent by Each Customer
+db.orders.aggregate([
+  {
+    $group: {
+      _id: "$customerId",
+      totalSpent: { $sum: "$amount" }
+    }
+  }
+])
+
+
+2. Retrieve Order Details Along with Corresponding Customer Information
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "customers",
+      localField: "customerId",
+      foreignField: "_id",
+      as: "customerDetails"
+    }
+  },
+  {
+    $unwind: "$customerDetails"
+  }
+])
+
+3. Find Orders Where the Amount Is Greater Than Rs. 500
+db.orders.aggregate([
+  {
+    $match: {
+      amount: { $gt: 500 }
+    }
+  }
+])
+
+4. Calculate the Average Order Amount Per Customer
+db.orders.aggregate([
+  {
+    $group: {
+      _id: "$customerId",
+      averageAmount: { $avg: "$amount" }
+    }
+  }
+])
+
+5. Retrieve All Orders with Customer Details
+
+(Ensure Each Order Has an Associated Customer Record)
+
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "customers",
+      localField: "customerId",
+      foreignField: "_id",
+      as: "customerDetails"
+    }
+  },
+  {
+    $unwind: {
+      path: "$customerDetails",
+      preserveNullAndEmptyArrays: false
+    }
+  }
+])
